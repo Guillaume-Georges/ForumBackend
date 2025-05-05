@@ -25,6 +25,38 @@ async function getManagementToken() {
 }
 
 
+async function updateProfileImage(req, res) {
+  const userId = +req.params.id;
+  const file   = req.file;                     // ← multer gives { buffer, mimetype… }
+
+  if (!file) return res.status(400).json({ error: 'No file uploaded' });
+
+  const upload = cloudinary.uploader.upload_stream(
+    {
+      folder:    'forum-profile-images',
+      public_id: `user_${userId}`,
+      overwrite: true,
+    },
+    async (err, result) => {
+      if (err) {
+        console.error('Cloudinary error', err);
+        return res.status(500).json({ error: 'Upload failed' });
+      }
+      await userModel.SetProfileImage(
+        userId,
+        { profile_image: result.secure_url }
+      );
+      res.json({ profile_image: result.secure_url });
+    }
+  );
+
+  /* stream only the bytes of the image */
+  require('stream').Readable.from(file.buffer).pipe(upload);
+}
+
+
+
+
 async function AddUser(req, res) {
   try {
     const { auth0_id, name, email, profile_image } = req.body;
@@ -169,4 +201,5 @@ module.exports = {
   GetUserProfile,
   getUserPosts,
   deleteUserAccount,
+  updateProfileImage,
 };

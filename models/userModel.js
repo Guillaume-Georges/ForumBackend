@@ -100,6 +100,10 @@ async function getUserPosts(userId) {
   return { user, posts };
 }
 
+async function SetProfileImage(userId, url) {
+  await db.execute('UPDATE users SET profile_image = ? WHERE id = ?', [url, userId]);
+  return true;
+}
 
 
 
@@ -142,6 +146,7 @@ module.exports = {
   DeleteAccount,
   UpdateUserProfile,
   getUserPosts,
+  SetProfileImage,
 };
 
 
